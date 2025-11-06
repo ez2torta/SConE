@@ -1,28 +1,82 @@
 /*
  * SNES Controller Emulator for ESP32
- * Adaptado para recibir comandos via Serial (uint32_t)
+ * Adaptado para recibir comandos via Bluetooth BLE (uint32_t)
  * 
  * Protocolo: Envía 4 bytes (little-endian) que forman un uint32_t
  * donde cada bit representa un botón del SNES
  */
 
 #include "pins_esp32.h"
+#include <BLEDevice.h>
+#include <BLEUtils.h>
+#include <BLEServer.h>
+
+// UUIDs para el servicio BLE
+#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
+#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
 // Variables globales
 volatile uint32_t buttonState = 0; // Estado de los botones (bit=1 -> botón presionado)
-volatile bool useSerial = true;    // Si true, usa Serial; si false, usa pines físicos
+volatile bool newBLEData = false;  // Flag para indicar nuevos datos BLE
+volatile uint8_t bleBuffer[4];     // Buffer para datos BLE
+
+BLEServer* pServer = NULL;
+BLECharacteristic* pCharacteristic = NULL;
+
+class MyCallbacks: public BLECharacteristicCallbacks {
+    void onWrite(BLECharacteristic *pCharacteristic) {
+        // Obtener los datos como String y copiar a buffer
+        String value = pCharacteristic->getValue();
+        if (value.length() == 4) {
+            // Copiar bytes al buffer (igual que Serial.readBytes)
+            for (int i = 0; i < 4; i++) {
+                bleBuffer[i] = (uint8_t)value[i];
+            }
+            newBLEData = true;
+            
+            // Debug: mostrar lo recibido
+            Serial.printf("BLE recibido: %02X %02X %02X %02X\n", 
+                         bleBuffer[0], bleBuffer[1], bleBuffer[2], bleBuffer[3]);
+        } else {
+            Serial.printf("BLE: longitud incorrecta (%d bytes)\n", value.length());
+        }
+    }
+};
 
 void initPins();
 void sendButtonBit(uint32_t buttons, uint8_t bitPosition);
 
 void setup() {
-    Serial.begin(115200); // Alta velocidad para ESP32
-    Serial.setTimeout(1); // Timeout mínimo para lectura rápida
+    Serial.begin(115200);
     
     initPins();
     
-    Serial.println("SNES Controller Emulator - ESP32");
-    Serial.println("Esperando datos uint32_t (4 bytes little-endian)");
+    // Inicializar BLE
+    BLEDevice::init("SNES Controller");
+    pServer = BLEDevice::createServer();
+    
+    BLEService *pService = pServer->createService(SERVICE_UUID);
+    
+    pCharacteristic = pService->createCharacteristic(
+        CHARACTERISTIC_UUID,
+        BLECharacteristic::PROPERTY_READ | BLECharacteristic::PROPERTY_WRITE
+    );
+    
+    pCharacteristic->setCallbacks(new MyCallbacks());
+    pCharacteristic->setValue("0"); // Valor inicial
+    
+    pService->start();
+    
+    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
+    pAdvertising->addServiceUUID(SERVICE_UUID);
+    pAdvertising->setScanResponse(true);
+    pAdvertising->setMinPreferred(0x06);  // functions that help with iPhone connections issue
+    pAdvertising->setMinPreferred(0x12);
+    BLEDevice::startAdvertising();
+    
+    Serial.println("SNES Controller Emulator - ESP32 BLE");
+    Serial.println("BLE iniciado. Esperando conexiones...");
+    Serial.println("Envía 4 bytes (little-endian) via BLE para controlar botones");
     Serial.println("Mapeo de bits:");
     Serial.println("  bit 0  = B      bit 8  = D-Up");
     Serial.println("  bit 1  = Y      bit 9  = D-Down");
@@ -35,16 +89,18 @@ void setup() {
 }
 
 void loop() {
-    // Leer datos del Serial si están disponibles
-    if (Serial.available() >= 4) {
-        uint8_t bytes[4];
-        Serial.readBytes(bytes, 4);
+    // Procesar datos BLE si hay nuevos (igual que Serial)
+    if (newBLEData) {
+        // Convertir de little-endian a uint32_t (igual que Serial)
+        buttonState = ((uint32_t)bleBuffer[0]) |
+                      ((uint32_t)bleBuffer[1] << 8) |
+                      ((uint32_t)bleBuffer[2] << 16) |
+                      ((uint32_t)bleBuffer[3] << 24);
         
-        // Convertir de little-endian a uint32_t
-        buttonState = ((uint32_t)bytes[0]) |
-                      ((uint32_t)bytes[1] << 8) |
-                      ((uint32_t)bytes[2] << 16) |
-                      ((uint32_t)bytes[3] << 24);
+        newBLEData = false;
+        
+        // Debug: mostrar conversión
+        Serial.printf("Convertido a buttonState: 0x%08X\n", buttonState);
     }
     
     // Esperar a que LATCH se ponga en HIGH
@@ -52,15 +108,13 @@ void loop() {
         return;
     }
     
-    uint32_t buttons;
+    uint32_t buttons = mapSerialToSNES(buttonState);
     
-    if (useSerial) {
-        // Usar el estado recibido por Serial
-        // Mapear del protocolo genérico al orden SNES
-        buttons = mapSerialToSNES(buttonState);
-    } else {
-        // Leer pines físicos (modo original)
-        buttons = readPhysicalButtons();
+    // Debug: mostrar estado cada cierto tiempo
+    static unsigned long lastDebug = 0;
+    if (millis() - lastDebug > 1000) {
+        Serial.printf("buttonState: 0x%08X, SNES buttons: 0x%03X\n", buttonState, buttons);
+        lastDebug = millis();
     }
     
     // Esperar a que LATCH baje
@@ -119,6 +173,7 @@ void loop() {
     
     // Clocks 13-16 - No usados, enviar botón no presionado (HIGH)
     digitalWrite(DATA_PIN, HIGH);
+    delay(1)
 }
 
 void initPins() {
@@ -127,20 +182,6 @@ void initPins() {
     pinMode(CLOCK_PIN, INPUT);
     pinMode(DATA_PIN, OUTPUT);
     digitalWrite(DATA_PIN, HIGH); // Estado por defecto: no presionado
-    
-    // Pines de botones (solo si se usan físicamente)
-    pinMode(BUTTON_B, INPUT_PULLUP);
-    pinMode(BUTTON_Y, INPUT_PULLUP);
-    pinMode(BUTTON_SELECT, INPUT_PULLUP);
-    pinMode(BUTTON_START, INPUT_PULLUP);
-    pinMode(BUTTON_A, INPUT_PULLUP);
-    pinMode(BUTTON_X, INPUT_PULLUP);
-    pinMode(BUTTON_L, INPUT_PULLUP);
-    pinMode(BUTTON_R, INPUT_PULLUP);
-    pinMode(PAD_UP, INPUT_PULLUP);
-    pinMode(PAD_DOWN, INPUT_PULLUP);
-    pinMode(PAD_LEFT, INPUT_PULLUP);
-    pinMode(PAD_RIGHT, INPUT_PULLUP);
 }
 
 void waitForClockCycle() {
@@ -155,6 +196,18 @@ void sendButtonBit(uint32_t buttons, uint8_t bitPosition) {
     // Entonces invertimos: si el bit está en 1, enviamos LOW
     bool pressed = (buttons >> bitPosition) & 1;
     digitalWrite(DATA_PIN, pressed ? LOW : HIGH);
+    
+    // Debug: mostrar qué bit se está enviando
+    static uint8_t bitCount = 0;
+    if (bitCount == 0) {
+        Serial.print("SNES bits: ");
+    }
+    Serial.print(pressed ? "1" : "0");
+    bitCount++;
+    if (bitCount >= 12) {
+        Serial.println();
+        bitCount = 0;
+    }
 }
 
 uint32_t mapSerialToSNES(uint32_t serialData) {
@@ -210,25 +263,14 @@ uint32_t mapSerialToSNES(uint32_t serialData) {
     if (serialData & (1 << 10)) snesButtons |= (1 << SNES_LEFT);   // Izquierda
     if (serialData & (1 << 11)) snesButtons |= (1 << SNES_RIGHT);  // Derecha
     
+    // Debug: mostrar mapeo cada cierto tiempo
+    static uint32_t lastSerialData = 0;
+    static unsigned long lastMapDebug = 0;
+    if (serialData != lastSerialData && millis() - lastMapDebug > 500) {
+        Serial.printf("Mapeo: entrada 0x%08X -> SNES 0x%03X\n", serialData, snesButtons);
+        lastSerialData = serialData;
+        lastMapDebug = millis();
+    }
+    
     return snesButtons;
-}
-
-uint32_t readPhysicalButtons() {
-    // Leer pines físicos (LOW = presionado)
-    uint32_t buttons = 0;
-    
-    if (digitalRead(BUTTON_B) == LOW)      buttons |= (1 << SNES_B);
-    if (digitalRead(BUTTON_Y) == LOW)      buttons |= (1 << SNES_Y);
-    if (digitalRead(BUTTON_SELECT) == LOW) buttons |= (1 << SNES_SELECT);
-    if (digitalRead(BUTTON_START) == LOW)  buttons |= (1 << SNES_START);
-    if (digitalRead(PAD_UP) == LOW)        buttons |= (1 << SNES_UP);
-    if (digitalRead(PAD_DOWN) == LOW)      buttons |= (1 << SNES_DOWN);
-    if (digitalRead(PAD_LEFT) == LOW)      buttons |= (1 << SNES_LEFT);
-    if (digitalRead(PAD_RIGHT) == LOW)     buttons |= (1 << SNES_RIGHT);
-    if (digitalRead(BUTTON_A) == LOW)      buttons |= (1 << SNES_A);
-    if (digitalRead(BUTTON_X) == LOW)      buttons |= (1 << SNES_X);
-    if (digitalRead(BUTTON_L) == LOW)      buttons |= (1 << SNES_L);
-    if (digitalRead(BUTTON_R) == LOW)      buttons |= (1 << SNES_R);
-    
-    return buttons;
 }

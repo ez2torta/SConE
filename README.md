@@ -7,9 +7,9 @@ SConE
 
 ---
 
-## 🆕 Nueva Versión ESP32 con Control Serial
+## 🆕 Nueva Versión ESP32 con Control Serial y BLE
 
-**¡Ahora disponible una versión para ESP32!** Esta nueva implementación permite controlar el SNES mediante comandos Serial usando `uint32_t` (4 bytes).
+**¡Ahora disponible una versión para ESP32!** Esta nueva implementación permite controlar el SNES mediante comandos Serial usando `uint32_t` (4 bytes) o **Bluetooth BLE**.
 
 ### 🚀 [**→ IR A LA GUÍA DE INICIO RÁPIDO ESP32 ←**](docs/INICIO_RAPIDO_ESP32.md)
 
@@ -17,15 +17,57 @@ SConE
 - 📁 `src/snes_esp32/` - Código principal para ESP32
 - 📖 `docs/` - Documentación completa
 - 🧪 `test_snes_serial.py` - Script de prueba en Python
-- 💡 `examples/` - Ejemplos de uso
+- 💡 `examples/` - Ejemplos de uso (Serial y BLE)
 
 **Características de la versión ESP32:**
 - ✅ Control via Serial (USB) con protocolo `uint32_t`
+- ✅ **Control via Bluetooth BLE con protocolo `uint32_t`**
 - ✅ Compatible con ESP32 y Arduino IDE
 - ✅ Soporte para los 12 botones del SNES
-- ✅ Opción de usar botones físicos o Serial
 - ✅ Sin dependencias de registros AVR
-- ✅ Ejemplos en Python y C++
+- ✅ Ejemplos en Python y Arduino para BLE
+- ✅ Sin necesidad de pines físicos para botones
+
+### 📡 Control via Bluetooth BLE
+
+La nueva versión BLE permite controlar el SNES de forma inalámbrica:
+
+- **Servicio BLE:** `4fafc201-1fb5-459e-8fcc-c5c9c331914b`
+- **Característica:** `beb5483e-36e1-4688-b7f5-ea07361b26a8`
+- **Protocolo:** Envía 4 bytes (little-endian) formando un `uint32_t`
+- **Mapeo de bits:** Ver documentación completa
+
+**Ejemplos BLE:**
+- 🐍 `examples/ble_snes_example.py` - Cliente Python con bleak
+- 🧪 `examples/ble_test_simple.py` - Script de pruebas BLE
+- 🧪 `examples/test_ble_input.py` - **Script completo de pruebas BLE (recomendado)**
+- 🔧 `examples/ble_snes_client_arduino.ino` - Cliente Arduino/ESP32
+- 📦 `requirements.txt` - Dependencias Python
+
+**🧪 Script de Pruebas BLE Completo:**
+
+Para probar la conexión BLE de forma completa, usa `test_ble_input.py`:
+
+```bash
+# Activar virtualenv
+source .venv/bin/activate
+
+# Ejecutar pruebas completas
+python examples/test_ble_input.py test
+
+# Modo interactivo
+python examples/test_ble_input.py interactive
+
+# Modo turbo (presiona A continuamente)
+python examples/test_ble_input.py turbo
+```
+
+Este script incluye:
+- ✅ Secuencia completa de pruebas (todos los botones)
+- ✅ Código Konami completo
+- ✅ Modo interactivo para control manual
+- ✅ Modo turbo para pruebas continuas
+- ✅ Manejo de errores y desconexión automática
 
 **Documentación ESP32:**
 - 📦 [**docs/INDICE.md**](docs/INDICE.md) - Navegación completa del proyecto

@@ -24,6 +24,7 @@ Guía de navegación de todos los archivos del proyecto.
 |---------|-------------|-------------|
 | **[README_ESP32.md](README_ESP32.md)** | Documentación técnica completa del proyecto ESP32 | Después del inicio rápido |
 | **[BUTTON_MAPPING.md](BUTTON_MAPPING.md)** | Referencia detallada del mapeo de botones con ejemplos | Cuando necesites mapear botones |
+| **[BLE_CONTROL.md](BLE_CONTROL.md)** | Control inalámbrico via Bluetooth BLE | Para control remoto |
 | **[PINOUT_SNES.md](PINOUT_SNES.md)** | Diagramas de conexión y pinout del SNES | Al conectar hardware |
 | **[FLUJO_DATOS.md](FLUJO_DATOS.md)** | Arquitectura y flujo de datos del sistema | Para entender el funcionamiento |
 | **[CAMBIOS_ESP32.md](CAMBIOS_ESP32.md)** | Resumen de adaptaciones desde Arduino Uno | Para desarrolladores |
@@ -82,13 +83,18 @@ src/
 
 ```
 examples/
-└── send_commands_example.ino    ← Ejemplo Arduino para enviar comandos
+├── send_commands_example.ino    ← Ejemplo Arduino para enviar comandos Serial
+├── ble_snes_example.py          ← Cliente Python BLE
+├── ble_test_simple.py           ← Script de pruebas BLE
+├── ble_snes_client_arduino.ino  ← Cliente Arduino BLE
+└── requirements.txt             ← Dependencias Python
 ```
 
 **Incluye:**
-- Función para enviar uint32_t
+- Función para enviar uint32_t por Serial
 - Helpers para cada botón
 - Secuencias de ejemplo
+- **Clientes BLE para Python y Arduino**
 
 ## 📋 Archivos de Configuración
 
