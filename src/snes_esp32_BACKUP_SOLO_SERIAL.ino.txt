@@ -1,101 +1,29 @@
 /*
- * SNES Controller Emulator for ESP32 with Bluetooth BLE Support
- * Adaptado para recibir comandos via Serial USB o Bluetooth BLE (uint32_t)
+ * SNES Controller Emulator for ESP32
+ * Adaptado para recibir comandos via Serial (uint32_t)
  * 
  * Protocolo: Envía 4 bytes (little-endian) que forman un uint32_t
  * donde cada bit representa un botón del SNES
- * 
- * Soporta dos modos de comunicación simultáneos:
- * - USB Serial (115200 baud)
- * - Bluetooth BLE (GATT Service)
  */
 
 #include "pins_esp32.h"
-#include <BLEDevice.h>
-#include <BLEServer.h>
-#include <BLEUtils.h>
-#include <BLE2902.h>
-
-// UUIDs para el servicio BLE
-#define SERVICE_UUID        "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
-#define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
 // Variables globales
 volatile uint32_t buttonState = 0; // Estado de los botones (bit=1 -> botón presionado)
-volatile uint32_t lastButtonState = 0xFFFFFFFF; // Estado anterior (inicializado diferente para forzar primer print)
-volatile bool useSerial = true;    // Si true, usa Serial/BLE; si false, usa pines físicos
-volatile bool bleConnected = false; // Estado de conexión BLE
+volatile bool useSerial = true;    // Si true, usa Serial; si false, usa pines físicos
 
-// Objetos BLE
-BLEServer* pServer = NULL;
-BLECharacteristic* pCharacteristic = NULL;
-
-// Prototipos de funciones
 void initPins();
-void initBLE();
 void sendButtonBit(uint32_t buttons, uint8_t bitPosition);
-uint32_t mapSerialToSNES(uint32_t serialData);
-uint32_t readPhysicalButtons();
-void waitForClockCycle();
-
-// Callback para eventos de conexión BLE
-class MyServerCallbacks: public BLEServerCallbacks {
-    void onConnect(BLEServer* pServer) {
-        bleConnected = true;
-        Serial.println("BLE: Cliente conectado");
-    };
-
-    void onDisconnect(BLEServer* pServer) {
-        bleConnected = false;
-        Serial.println("BLE: Cliente desconectado");
-        // Reiniciar advertising para permitir nuevas conexiones
-        BLEDevice::startAdvertising();
-        Serial.println("BLE: Advertising reiniciado");
-    }
-};
-
-// Callback para recibir datos por BLE
-class MyCharacteristicCallbacks: public BLECharacteristicCallbacks {
-    void onWrite(BLECharacteristic *pCharacteristic) {
-        // Obtener el valor como puntero a los datos
-        uint8_t* data = pCharacteristic->getData();
-        size_t len = pCharacteristic->getValue().length();
-        
-        if (len == 4) {
-            // Convertir de little-endian a uint32_t
-            uint32_t newState = ((uint32_t)data[0]) |
-                               ((uint32_t)data[1] << 8) |
-                               ((uint32_t)data[2] << 16) |
-                               ((uint32_t)data[3] << 24);
-            
-            // Solo imprimir si el estado cambió
-            if (newState != lastButtonState) {
-                buttonState = newState;
-                lastButtonState = newState;
-                Serial.print("BLE recibido: 0x");
-                Serial.println(buttonState, HEX);
-            } else {
-                buttonState = newState;
-            }
-        }
-    }
-};
 
 void setup() {
     Serial.begin(115200); // Alta velocidad para ESP32
     Serial.setTimeout(1); // Timeout mínimo para lectura rápida
     
     initPins();
-    initBLE();
     
-    Serial.println("\n==============================================");
-    Serial.println("SNES Controller Emulator - ESP32 with BLE");
-    Serial.println("==============================================");
-    Serial.println("\nModos de comunicación:");
-    Serial.println("  1. USB Serial (115200 baud)");
-    Serial.println("  2. Bluetooth BLE (GATT Service)");
-    Serial.println("\nProtocolo: uint32_t (4 bytes little-endian)");
-    Serial.println("\nMapeo de bits:");
+    Serial.println("SNES Controller Emulator - ESP32");
+    Serial.println("Esperando datos uint32_t (4 bytes little-endian)");
+    Serial.println("Mapeo de bits:");
     Serial.println("  bit 0  = B      bit 8  = D-Up");
     Serial.println("  bit 1  = Y      bit 9  = D-Down");
     Serial.println("  bit 2  = Select bit 10 = D-Left");
@@ -104,8 +32,6 @@ void setup() {
     Serial.println("  bit 5  = (n/a)  bit 13 = X");
     Serial.println("  bit 6  = L      bit 14 = (n/a)");
     Serial.println("  bit 7  = R      bit 15 = (n/a)");
-    Serial.println("\nBLE Device Name: SNES-Controller");
-    Serial.println("Esperando conexión...\n");
 }
 
 void loop() {
@@ -115,20 +41,10 @@ void loop() {
         Serial.readBytes(bytes, 4);
         
         // Convertir de little-endian a uint32_t
-        uint32_t newState = ((uint32_t)bytes[0]) |
-                           ((uint32_t)bytes[1] << 8) |
-                           ((uint32_t)bytes[2] << 16) |
-                           ((uint32_t)bytes[3] << 24);
-        
-        // Solo imprimir si el estado cambió
-        if (newState != lastButtonState) {
-            buttonState = newState;
-            lastButtonState = newState;
-            Serial.print("Serial recibido: 0x");
-            Serial.println(buttonState, HEX);
-        } else {
-            buttonState = newState;
-        }
+        buttonState = ((uint32_t)bytes[0]) |
+                      ((uint32_t)bytes[1] << 8) |
+                      ((uint32_t)bytes[2] << 16) |
+                      ((uint32_t)bytes[3] << 24);
     }
     
     // Esperar a que LATCH se ponga en HIGH
@@ -139,7 +55,7 @@ void loop() {
     uint32_t buttons;
     
     if (useSerial) {
-        // Usar el estado recibido por Serial/BLE
+        // Usar el estado recibido por Serial
         // Mapear del protocolo genérico al orden SNES
         buttons = mapSerialToSNES(buttonState);
     } else {
@@ -225,50 +141,6 @@ void initPins() {
     pinMode(PAD_DOWN, INPUT_PULLUP);
     pinMode(PAD_LEFT, INPUT_PULLUP);
     pinMode(PAD_RIGHT, INPUT_PULLUP);
-}
-
-void initBLE() {
-    // Crear dispositivo BLE
-    BLEDevice::init("SNES-Controller");
-    
-    // Crear servidor BLE
-    pServer = BLEDevice::createServer();
-    pServer->setCallbacks(new MyServerCallbacks());
-    
-    // Crear servicio BLE
-    BLEService *pService = pServer->createService(SERVICE_UUID);
-    
-    // Crear característica BLE (lectura y escritura)
-    pCharacteristic = pService->createCharacteristic(
-        CHARACTERISTIC_UUID,
-        BLECharacteristic::PROPERTY_READ |
-        BLECharacteristic::PROPERTY_WRITE |
-        BLECharacteristic::PROPERTY_NOTIFY
-    );
-    
-    // Añadir descriptor para notificaciones
-    pCharacteristic->addDescriptor(new BLE2902());
-    
-    // Establecer callback para escrituras
-    pCharacteristic->setCallbacks(new MyCharacteristicCallbacks());
-    
-    // Valor inicial (todos los botones soltados)
-    uint8_t initialValue[4] = {0, 0, 0, 0};
-    pCharacteristic->setValue(initialValue, 4);
-    
-    // Iniciar servicio
-    pService->start();
-    
-    // Iniciar advertising
-    BLEAdvertising *pAdvertising = BLEDevice::getAdvertising();
-    pAdvertising->addServiceUUID(SERVICE_UUID);
-    pAdvertising->setScanResponse(true);
-    pAdvertising->setMinPreferred(0x06);  // Ayuda con problemas de conexión en iOS
-    pAdvertising->setMinPreferred(0x12);
-    BLEDevice::startAdvertising();
-    
-    Serial.println("BLE: Servicio iniciado");
-    Serial.println("BLE: Esperando conexión de cliente...");
 }
 
 void waitForClockCycle() {

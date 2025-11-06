@@ -7,31 +7,38 @@ SConE
 
 ---
 
-## 🆕 Nueva Versión ESP32 con Control Serial
+## 🆕 Nueva Versión ESP32 con Control Serial y Bluetooth BLE
 
-**¡Ahora disponible una versión para ESP32!** Esta nueva implementación permite controlar el SNES mediante comandos Serial usando `uint32_t` (4 bytes).
+**¡Ahora disponible una versión para ESP32!** Esta nueva implementación permite controlar el SNES mediante comandos Serial usando `uint32_t` (4 bytes) **y ahora también con Bluetooth BLE para control inalámbrico**.
 
 ### 🚀 [**→ IR A LA GUÍA DE INICIO RÁPIDO ESP32 ←**](docs/INICIO_RAPIDO_ESP32.md)
+### 📡 [**→ NUEVA: GUÍA BLUETOOTH BLE ←**](docs/README_BLE.md)
 
 **Archivos de la versión ESP32:**
 - 📁 `src/snes_esp32/` - Código principal para ESP32
+- 📁 `src/snes_esp32/snes_esp32_ble.ino` - **NUEVO:** Versión con soporte BLE
 - 📖 `docs/` - Documentación completa
-- 🧪 `test_snes_serial.py` - Script de prueba en Python
+- 🧪 `test_snes_serial.py` - Script de prueba Serial en Python
+- 🧪 `examples/test_ble_input.py` - **NUEVO:** Script con soporte BLE + Serial
 - 💡 `examples/` - Ejemplos de uso
 
 **Características de la versión ESP32:**
 - ✅ Control via Serial (USB) con protocolo `uint32_t`
+- ✅ **NUEVO:** Control vía Bluetooth BLE (inalámbrico)
+- ✅ Soporte dual: USB Serial y BLE simultáneos
 - ✅ Compatible con ESP32 y Arduino IDE
 - ✅ Soporte para los 12 botones del SNES
-- ✅ Opción de usar botones físicos o Serial
+- ✅ Opción de usar botones físicos o Serial/BLE
 - ✅ Sin dependencias de registros AVR
 - ✅ Ejemplos en Python y C++
+- ✅ Compatible con apps móviles vía BLE
 
 **Documentación ESP32:**
 - 📦 [**docs/INDICE.md**](docs/INDICE.md) - Navegación completa del proyecto
 - ⚡ [**docs/REFERENCIA_RAPIDA.md**](docs/REFERENCIA_RAPIDA.md) - Cheatsheet de una página
 - 📖 [**docs/README_ESP32.md**](docs/README_ESP32.md) - Documentación técnica completa
 - 🖥️ [**docs/ARDUINO_IDE_VISUAL.md**](docs/ARDUINO_IDE_VISUAL.md) - Guía visual Arduino IDE
+- 📡 [**docs/README_BLE.md**](docs/README_BLE.md) - **NUEVO:** Guía completa de Bluetooth BLE
 
 ---
 

@@ -1,0 +1,11 @@
+# Dependencias para SNES Controller Emulator con BLE
+
+# Comunicación Serial USB
+pyserial>=3.5
+
+# Comunicación Bluetooth BLE
+bleak>=0.21.0
+
+# Opcional: Detección automática de puertos seriales
+# (ya incluido con pyserial, pero útil listarlo explícitamente)
+pyserial-asyncio>=0.6

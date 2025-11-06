@@ -1,79 +1,126 @@
-# SNES Controller Emulator for ESP32
+# SNES Controller Emulator - ESP32 con Bluetooth BLE
 
-Este es el código principal del emulador de controlador SNES para ESP32.
+## ⚡ Versiones Disponibles
+
+### `snes_esp32.ino` ← **USAR ESTE**
+**Archivo principal** - Versión completa con soporte para:
+- ✅ USB Serial (115200 baud)
+- ✅ **Bluetooth BLE** (GATT Service)
+- ✅ Lectura de pines físicos (modo tradicional)
+
+### Backup (fuera de esta carpeta)
+La versión original solo-Serial está guardada en:
+- `../snes_esp32_BACKUP_SOLO_SERIAL.ino.txt`
+
+⚠️ **IMPORTANTE**: El archivo backup fue movido FUERA de esta carpeta porque Arduino IDE compila todos los archivos `.ino` juntos, causando errores de redefinición.
+
+---
 
 ## 🚀 Inicio Rápido
 
-1. **Abrir este archivo en Arduino IDE:**
-   - Hacer doble clic en `snes_esp32.ino`
-   - Arduino IDE abrirá automáticamente ambos archivos (.ino y .h)
+### 1. Cargar en Arduino IDE
 
-2. **Configurar la placa:**
-   - Tools → Board → ESP32 Dev Module
-   - Tools → Port → Seleccionar tu ESP32
+1. Abre **Arduino IDE**
+2. Abre `snes_esp32.ino`
+3. Selecciona tu placa ESP32 (Tools → Board → ESP32 Dev Module)
+4. Selecciona el puerto (Tools → Port)
+5. Sube el sketch (→ Upload)
 
-3. **Subir el código:**
-   - Click en "Upload" (→) o Ctrl+U
-
-4. **Abrir Serial Monitor:**
-   - Tools → Serial Monitor (Ctrl+Shift+M)
-   - Configurar baudrate: **115200**
-
-## 📁 Archivos
-
-- `snes_esp32.ino` - Código principal
-- `pins_esp32.h` - Configuración de pines GPIO
-
-## 🔌 Conexiones Mínimas
+### 2. Verificar en Serial Monitor
 
 ```
-ESP32 → SNES
-─────────────
+==============================================
+SNES Controller Emulator - ESP32 with BLE
+==============================================
+
+Modos de comunicación:
+  1. USB Serial (115200 baud)
+  2. Bluetooth BLE (GATT Service)
+
+BLE Device Name: SNES-Controller
+Esperando conexión...
+```
+
+---
+
+## 📡 Uso
+
+### Opción A: USB Serial
+
+```bash
+# Desde Python
+python examples/test_serial_input.py /dev/cu.usbserial-2140 test
+```
+
+### Opción B: Bluetooth BLE
+
+```bash
+# Instalar dependencia
+pip install bleak
+
+# Ejecutar
+python examples/test_ble_input.py
+```
+
+### Opción C: Código Python
+
+```python
+# Ver ejemplos completos en:
+examples/example_ble_usage.py
+examples/test_ble_input.py
+examples/test_serial_input.py
+```
+
+---
+
+## 🎮 Protocolo
+
+Ambos modos (USB Serial y BLE) usan el mismo protocolo:
+- **Formato**: `uint32_t` (4 bytes en little-endian)
+- **Cada bit** = un botón (1 = presionado, 0 = soltado)
+
+### Mapeo de Bits:
+
+| Bit | Botón    | Hex    | Bit | Botón     | Hex    |
+|-----|----------|--------|-----|-----------|--------|
+| 0   | B        | 0x0001 | 8   | D-Up      | 0x0100 |
+| 1   | Y        | 0x0002 | 9   | D-Down    | 0x0200 |
+| 2   | Select   | 0x0004 | 10  | D-Left    | 0x0400 |
+| 3   | Start    | 0x0008 | 11  | D-Right   | 0x0800 |
+| 6   | L        | 0x0040 | 12  | A         | 0x1000 |
+| 7   | R        | 0x0080 | 13  | X         | 0x2000 |
+
+---
+
+## 📶 Bluetooth BLE
+
+### Información del Servicio
+
+- **Device Name**: `SNES-Controller`
+- **Service UUID**: `4fafc201-1fb5-459e-8fcc-c5c9c331914b`
+- **Characteristic UUID**: `beb5483e-36e1-4688-b7f5-ea07361b26a8`
+
+### Conectarse desde:
+- 🐍 Python (usando librería `bleak`)
+- 📱 Apps móviles (Android/iOS con nRF Connect)
+- 💻 Otros dispositivos BLE
+
+---
+
+## 🔌 Conexiones Hardware
+
+```
+ESP32 → SNES Console
+────────────────────
 GPIO 25 → LATCH
 GPIO 26 → CLOCK
 GPIO 27 → DATA
 GND     → GND
 ```
 
-## 📡 Uso
+Ver diagrama completo: `../../docs/PINOUT_SNES.md`
 
-### Enviar comandos desde Python:
-
-```python
-import serial, struct
-
-ser = serial.Serial('/dev/ttyUSB0', 115200)
-ser.write(struct.pack('<I', 1 << 12))  # Presionar A
-ser.write(struct.pack('<I', 0))         # Soltar
-ser.close()
-```
-
-### Desde otro Arduino/ESP32:
-
-```cpp
-Serial.begin(115200);
-uint32_t cmd = 1 << 12;  // A
-Serial.write((uint8_t)(cmd & 0xFF));
-Serial.write((uint8_t)((cmd >> 8) & 0xFF));
-Serial.write((uint8_t)((cmd >> 16) & 0xFF));
-Serial.write((uint8_t)((cmd >> 24) & 0xFF));
-```
-
-## 🎮 Mapeo de Bits
-
-| Bit | Botón | Hex |
-|-----|-------|-----|
-| 0 | B | 0x0001 |
-| 1 | Y | 0x0002 |
-| 2 | SELECT/X | 0x0004 |
-| 3 | START | 0x0008 |
-| 6 | L | 0x0040 |
-| 7 | R | 0x0080 |
-| 8 | UP | 0x0100 |
-| 9 | DOWN | 0x0200 |
-| 10 | LEFT | 0x0400 |
-| 11 | RIGHT | 0x0800 |
-| 12 | A | 0x1000 |
+---
 
 ## ⚙️ Configuración
 
@@ -86,40 +133,85 @@ Editar `pins_esp32.h`:
 #define DATA_PIN  27
 ```
 
-### Usar botones físicos en vez de Serial:
+### Usar botones físicos en vez de Serial/BLE:
 
-En `snes_esp32.ino`, línea 10:
+En `snes_esp32.ino`, línea ~25:
 ```cpp
 volatile bool useSerial = false;  // Cambiar a false
 ```
 
-## 📚 Documentación Completa
+---
 
-Para documentación detallada, ver archivos en la carpeta `docs/` del proyecto:
+## � Troubleshooting
 
-- `../../docs/INICIO_RAPIDO_ESP32.md` - Guía de inicio
-- `../../docs/README_ESP32.md` - Documentación completa
-- `../../docs/REFERENCIA_RAPIDA.md` - Referencia rápida
-- `../../docs/BUTTON_MAPPING.md` - Mapeo de botones
-- `../../docs/PINOUT_SNES.md` - Diagrama de conexiones
-- `../../test_snes_serial.py` - Script de prueba
-- `../../examples/test_serial_input.py` - Script de prueba interactivo
+### Error: "redefinition of setup/loop/buttonState..."
 
-## 🐛 Problemas Comunes
+**Causa**: Múltiples archivos `.ino` en la misma carpeta.
 
-**No compila:**
-- Instalar soporte ESP32 en Boards Manager
+**Solución**: Arduino IDE compila TODOS los archivos `.ino` juntos. Solo debe haber uno activo.
 
-**No sube:**
-- Presionar botón BOOT al subir
-- Verificar puerto seleccionado
+✅ Correcto: `snes_esp32.ino` + `pins_esp32.h`  
+❌ Error: `snes_esp32.ino` + `snes_esp32_BACKUP_SOLO_SERIAL.ino`
 
-**Serial muestra basura:**
-- Verificar baudrate: 115200
+**Cómo arreglar**:
+```bash
+# Renombrar el backup para que no sea .ino
+mv snes_esp32_BACKUP_SOLO_SERIAL.ino snes_esp32_BACKUP_SOLO_SERIAL.txt
+```
 
-**SNES no responde:**
-- Revisar 4 conexiones (LATCH, CLOCK, DATA, GND)
+### Bluetooth no se conecta
+
+1. ✅ Verifica Serial Monitor: debe mostrar "BLE: Servicio iniciado"
+2. 📱 Usa app de escaneo BLE (ej: nRF Connect) para ver si aparece `SNES-Controller`
+3. 🍎 En macOS: Da permisos de Bluetooth a Terminal/Python en Preferencias del Sistema
+
+### Serial muestra basura
+
+- Baud rate debe ser **115200**
+- Verifica el puerto correcto con `ls /dev/cu.*`
+
+### No compila
+
+```bash
+# Instalar soporte ESP32 en Arduino IDE:
+# File → Preferences → Additional Board Manager URLs:
+https://dl.espressif.com/dl/package_esp32_index.json
+
+# Luego:
+# Tools → Board → Boards Manager → Buscar "esp32" → Install
+```
 
 ---
 
-**¿Necesitas ayuda?** Lee `../../docs/INICIO_RAPIDO_ESP32.md` para instrucciones detalladas.
+## 📚 Más Información
+
+### Documentación Detallada
+
+- `../../docs/INICIO_RAPIDO_BLE.md` - Guía rápida Bluetooth
+- `../../docs/README_BLE.md` - Documentación BLE completa
+- `../../docs/INSTALACION_LIBRERIAS_BLE.md` - Instalación librerías
+- `../../docs/README_ESP32.md` - Documentación ESP32 general
+- `../../docs/BUTTON_MAPPING.md` - Mapeo de botones detallado
+
+### Scripts de Ejemplo
+
+- `../../examples/test_ble_input.py` - Test interactivo BLE
+- `../../examples/test_serial_input.py` - Test interactivo Serial
+- `../../examples/example_ble_usage.py` - Ejemplos de uso BLE
+
+---
+
+## 📊 Comparación de Versiones
+
+| Característica | Solo Serial (backup) | Con BLE (actual) |
+|----------------|---------------------|------------------|
+| USB Serial     | ✅                  | ✅               |
+| Bluetooth BLE  | ❌                  | ✅               |
+| Pines físicos  | ✅                  | ✅               |
+| Librerías extra| Ninguna             | BLE (incluido)   |
+| RAM usada      | ~30KB               | ~60KB            |
+| Alcance        | Cable USB           | ~10m wireless    |
+
+---
+
+**¿Problemas?** Abre un issue en GitHub o consulta la documentación en `/docs/`
