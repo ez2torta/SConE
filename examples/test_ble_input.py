@@ -38,7 +38,7 @@ except ImportError:
 # BLE UUIDs (deben coincidir con el firmware ESP32)
 BLE_SERVICE_UUID = "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 BLE_CHARACTERISTIC_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8"
-BLE_DEVICE_NAME = "SNES-Controller"
+BLE_DEVICE_NAME = "SNES Controller"  # Sin guión - así lo anuncia el ESP32
 
 # Mapeo de botones específico para SNES
 # El SNES tiene 12 botones: 4 direccionales, 6 de acción, 2 auxiliares
@@ -144,10 +144,9 @@ class SNESControllerBLE(SNESController):
         self.connected = True
         print(f"✅ Conectado a {self.address} (BLE)")
         
-        # Verificar que el servicio existe
-        services = await self.client.get_services()
+        # Verificar que el servicio existe (services es una propiedad en bleak)
         service_found = False
-        for service in services:
+        for service in self.client.services:
             if service.uuid.lower() == BLE_SERVICE_UUID.lower():
                 service_found = True
                 break
@@ -156,20 +155,19 @@ class SNESControllerBLE(SNESController):
             raise RuntimeError(f"Servicio {BLE_SERVICE_UUID} no encontrado")
     
     def send_buttons(self, button_mask: int):
-        """Versión síncrona que usa asyncio internamente"""
-        asyncio.run(self._send_buttons_async(button_mask))
+        """
+        Versión síncrona - NO usar con BLE en contexto async
+        Esta versión solo funciona si se llama desde código no-async
+        """
+        raise RuntimeError("No uses send_buttons() con BLE. Usa send_buttons_async() en un contexto async")
     
-    async def _send_buttons_async(self, button_mask: int):
-        """Envía datos por BLE (versión async)"""
+    async def send_buttons_async(self, button_mask: int):
+        """Envía datos por BLE (versión async) - USAR ESTA"""
         if not self.connected or self.client is None:
             raise RuntimeError("No conectado al dispositivo BLE")
         
         data = struct.pack('<I', button_mask)
         await self.client.write_gatt_char(BLE_CHARACTERISTIC_UUID, data)
-    
-    async def send_buttons_async(self, button_mask: int):
-        """Versión async para usar en contextos async"""
-        await self._send_buttons_async(button_mask)
     
     async def disconnect(self):
         """Desconecta del dispositivo BLE"""
@@ -183,77 +181,84 @@ class SNESControllerBLE(SNESController):
         asyncio.run(self.disconnect())
 
 
-def test_sequence(controller: SNESController):
-    """Ejecuta una secuencia de prueba para botones SNES"""
+async def test_sequence(controller):
+    """Ejecuta una secuencia de prueba para botones SNES (async para BLE)"""
     print("=== Iniciando secuencia de prueba SNES ===\n")
+    
+    # Función auxiliar para enviar botones (maneja tanto Serial como BLE)
+    async def send(mask):
+        if isinstance(controller, SNESControllerBLE):
+            await controller.send_buttons_async(mask)
+        else:
+            controller.send_buttons(mask)
     
     # Test 1: Botones de acción
     print("Test 1: Botones de acción")
     action_buttons = ['B', 'Y', 'A', 'X']
     for name in action_buttons:
         print(f"  Presionando {name}...")
-        controller.send_buttons(BUTTONS[name])
-        time.sleep(0.4)
-        controller.send_buttons(0)  # Soltar
-        time.sleep(0.2)
+        await send(BUTTONS[name])
+        await asyncio.sleep(0.4)
+        await send(0)  # Soltar
+        await asyncio.sleep(0.2)
     
     # Test 2: D-Pad
     print("\nTest 2: D-Pad (direccionales)")
     dpad_sequence = ['UP', 'RIGHT', 'DOWN', 'LEFT']
     for direction in dpad_sequence:
         print(f"  D-Pad {direction}")
-        controller.send_buttons(BUTTONS[direction])
-        time.sleep(0.4)
-        controller.send_buttons(0)
-        time.sleep(0.2)
+        await send(BUTTONS[direction])
+        await asyncio.sleep(0.4)
+        await send(0)
+        await asyncio.sleep(0.2)
     
     # Test 3: Botones de hombro
     print("\nTest 3: Botones de hombro")
     for name in ['L', 'R']:
         print(f"  Presionando {name}...")
-        controller.send_buttons(BUTTONS[name])
-        time.sleep(0.4)
-        controller.send_buttons(0)
-        time.sleep(0.2)
+        await send(BUTTONS[name])
+        await asyncio.sleep(0.4)
+        await send(0)
+        await asyncio.sleep(0.2)
     
     # Test 4: Botones de sistema
     print("\nTest 4: Botones de sistema")
     for name in ['SELECT', 'START']:
         print(f"  Presionando {name}...")
-        controller.send_buttons(BUTTONS[name])
-        time.sleep(0.4)
-        controller.send_buttons(0)
-        time.sleep(0.2)
+        await send(BUTTONS[name])
+        await asyncio.sleep(0.4)
+        await send(0)
+        await asyncio.sleep(0.2)
     
     # Test 5: Combos comunes
     print("\nTest 5: Combinaciones comunes")
     
     print("  A + B (combo clásico)")
     combo = BUTTONS['A'] | BUTTONS['B']
-    controller.send_buttons(combo)
-    time.sleep(0.5)
-    controller.send_buttons(0)
-    time.sleep(0.3)
+    await send(combo)
+    await asyncio.sleep(0.5)
+    await send(0)
+    await asyncio.sleep(0.3)
     
     print("  UP + A (salto hacia arriba)")
     combo = BUTTONS['UP'] | BUTTONS['A']
-    controller.send_buttons(combo)
-    time.sleep(0.5)
-    controller.send_buttons(0)
-    time.sleep(0.3)
+    await send(combo)
+    await asyncio.sleep(0.5)
+    await send(0)
+    await asyncio.sleep(0.3)
     
     print("  L + R (combo de hombros)")
     combo = BUTTONS['L'] | BUTTONS['R']
-    controller.send_buttons(combo)
-    time.sleep(0.5)
-    controller.send_buttons(0)
-    time.sleep(0.3)
+    await send(combo)
+    await asyncio.sleep(0.5)
+    await send(0)
+    await asyncio.sleep(0.3)
     
     print("  START + SELECT (pausa/reset)")
     combo = BUTTONS['START'] | BUTTONS['SELECT']
-    controller.send_buttons(combo)
-    time.sleep(0.5)
-    controller.send_buttons(0)
+    await send(combo)
+    await asyncio.sleep(0.5)
+    await send(0)
     
     # Test 6: Konami Code!
     print("\nTest 6: Konami Code! ⬆️⬆️⬇️⬇️⬅️➡️⬅️➡️🅱️🅰️")
@@ -272,10 +277,10 @@ def test_sequence(controller: SNESController):
     
     for button, label in konami:
         print(f"  {label}")
-        controller.send_buttons(BUTTONS[button])
-        time.sleep(0.3)
-        controller.send_buttons(0)
-        time.sleep(0.2)
+        await send(BUTTONS[button])
+        await asyncio.sleep(0.3)
+        await send(0)
+        await asyncio.sleep(0.2)
     
     print("\n=== Test completado! ===")
 
@@ -402,7 +407,7 @@ async def async_main():
         
         # Ejecutar el modo seleccionado
         if mode == 'test':
-            test_sequence(controller)
+            await test_sequence(controller)
         elif mode == 'interactive':
             interactive_mode(controller)
         elif mode in ['turbo', 'spam']:
