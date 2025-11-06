@@ -5,6 +5,38 @@ SConE
 
 **S**NES **Con**troller **E**mulator using Arduino (Uno)
 
+---
+
+## 🆕 Nueva Versión ESP32 con Control Serial
+
+**¡Ahora disponible una versión para ESP32!** Esta nueva implementación permite controlar el SNES mediante comandos Serial usando `uint32_t` (4 bytes).
+
+### 🚀 [**→ IR A LA GUÍA DE INICIO RÁPIDO ESP32 ←**](docs/INICIO_RAPIDO_ESP32.md)
+
+**Archivos de la versión ESP32:**
+- 📁 `src/snes_esp32/` - Código principal para ESP32
+- 📖 `docs/` - Documentación completa
+- 🧪 `test_snes_serial.py` - Script de prueba en Python
+- 💡 `examples/` - Ejemplos de uso
+
+**Características de la versión ESP32:**
+- ✅ Control via Serial (USB) con protocolo `uint32_t`
+- ✅ Compatible con ESP32 y Arduino IDE
+- ✅ Soporte para los 12 botones del SNES
+- ✅ Opción de usar botones físicos o Serial
+- ✅ Sin dependencias de registros AVR
+- ✅ Ejemplos en Python y C++
+
+**Documentación ESP32:**
+- 📦 [**docs/INDICE.md**](docs/INDICE.md) - Navegación completa del proyecto
+- ⚡ [**docs/REFERENCIA_RAPIDA.md**](docs/REFERENCIA_RAPIDA.md) - Cheatsheet de una página
+- 📖 [**docs/README_ESP32.md**](docs/README_ESP32.md) - Documentación técnica completa
+- 🖥️ [**docs/ARDUINO_IDE_VISUAL.md**](docs/ARDUINO_IDE_VISUAL.md) - Guía visual Arduino IDE
+
+---
+
+## 📜 Versión Original (Arduino Uno)
+
 ## Overview
 
 This is a basic SNES controller emulator written for the Arduino Uno.
