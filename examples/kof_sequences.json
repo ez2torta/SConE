@@ -1,0 +1,620 @@
+{
+  "metadata": {
+    "game": "KOF XV",
+    "fps": 60,
+    "version": "1.0",
+    "description": "Secuencias de movimientos frame-perfect para entrenamiento"
+  },
+  "button_mapping": {
+    "5": "NEUTRAL",
+    "6": "RIGHT",
+    "4": "LEFT",
+    "2": "DOWN",
+    "8": "UP",
+    "7": "UP_LEFT",
+    "9": "UP_RIGHT",
+    "1": "DOWN_LEFT",
+    "3": "DOWN_RIGHT",
+    "A": "A",
+    "B": "B",
+    "C": "C",
+    "D": "D",
+    "AB": "AB",
+    "CD": "CD",
+    "BC": "BC",
+    "AC": "AC",
+    "BD": "BD",
+    "AD": "AD",
+    "SELECT": "SELECT",
+    "START": "START"
+  },
+  "basic_attacks": {
+    "st_A": {
+      "name": "Standing Light Punch",
+      "category": "normal",
+      "difficulty": 1,
+      "frames": [
+        {"input": "5", "hold": 3, "comment": "neutral, preparación"},
+        {"input": "5+A", "hold": 1, "comment": "presionar A"},
+        {"input": "5", "hold": 5, "comment": "animación"}
+      ],
+      "total_frames": 9,
+      "properties": ["cancelable"]
+    },
+    "st_B": {
+      "name": "Standing Light Kick",
+      "category": "normal",
+      "difficulty": 1,
+      "frames": [
+        {"input": "5", "hold": 3},
+        {"input": "5+B", "hold": 1},
+        {"input": "5", "hold": 6}
+      ],
+      "total_frames": 10
+    },
+    "st_C": {
+      "name": "Standing Strong Punch",
+      "category": "normal",
+      "difficulty": 1,
+      "frames": [
+        {"input": "5", "hold": 4},
+        {"input": "5+C", "hold": 1},
+        {"input": "5", "hold": 8}
+      ],
+      "total_frames": 13
+    },
+    "st_D": {
+      "name": "Standing Strong Kick",
+      "category": "normal",
+      "difficulty": 1,
+      "frames": [
+        {"input": "5", "hold": 4},
+        {"input": "5+D", "hold": 1},
+        {"input": "5", "hold": 10}
+      ],
+      "total_frames": 15
+    },
+    "cr_B": {
+      "name": "Crouch Light Kick",
+      "category": "normal",
+      "difficulty": 2,
+      "frames": [
+        {"input": "2", "hold": 2, "comment": "mantener down"},
+        {"input": "2+B", "hold": 1, "comment": "down + B"},
+        {"input": "2", "hold": 4, "comment": "mantener durante hit"},
+        {"input": "5", "hold": 2, "comment": "recovery"}
+      ],
+      "total_frames": 9,
+      "properties": ["low", "cancelable", "priority"]
+    },
+    "cr_A": {
+      "name": "Crouch Light Punch",
+      "category": "normal",
+      "difficulty": 1,
+      "frames": [
+        {"input": "2", "hold": 2},
+        {"input": "2+A", "hold": 1},
+        {"input": "2", "hold": 4},
+        {"input": "5", "hold": 2}
+      ],
+      "total_frames": 9,
+      "properties": ["cancelable"]
+    },
+    "cr_C": {
+      "name": "Crouch Strong Punch",
+      "category": "normal",
+      "difficulty": 2,
+      "frames": [
+        {"input": "2", "hold": 3},
+        {"input": "2+C", "hold": 1},
+        {"input": "2", "hold": 8},
+        {"input": "5", "hold": 2}
+      ],
+      "total_frames": 14,
+      "properties": ["cancelable"]
+    },
+    "cr_D": {
+      "name": "Crouch Strong Kick (Sweep)",
+      "category": "normal",
+      "difficulty": 2,
+      "frames": [
+        {"input": "2", "hold": 4},
+        {"input": "2+D", "hold": 1},
+        {"input": "2", "hold": 12},
+        {"input": "5", "hold": 3}
+      ],
+      "total_frames": 20,
+      "properties": ["low", "knockdown", "unsafe"]
+    },
+    "cl_C": {
+      "name": "Close Strong Punch",
+      "category": "normal",
+      "difficulty": 2,
+      "frames": [
+        {"input": "5", "hold": 2, "comment": "muy cerca del oponente"},
+        {"input": "5+C", "hold": 1},
+        {"input": "5", "hold": 6}
+      ],
+      "total_frames": 9,
+      "properties": ["cancelable", "close", "confirm"]
+    }
+  },
+  "special_motions": {
+    "QCF": {
+      "name": "Quarter Circle Forward",
+      "notation": "236",
+      "category": "motion",
+      "difficulty": 2,
+      "frames": [
+        {"input": "5", "hold": 3, "comment": "neutral"},
+        {"input": "2", "hold": 1, "comment": "down"},
+        {"input": "3", "hold": 1, "comment": "down-forward"},
+        {"input": "6+{button}", "hold": 1, "comment": "forward + button"}
+      ],
+      "total_frames": 6,
+      "shortcut": ["2", "3", "6+{button}"]
+    },
+    "QCB": {
+      "name": "Quarter Circle Back",
+      "notation": "214",
+      "category": "motion",
+      "difficulty": 2,
+      "frames": [
+        {"input": "5", "hold": 3},
+        {"input": "2", "hold": 1},
+        {"input": "1", "hold": 1},
+        {"input": "4+{button}", "hold": 1}
+      ],
+      "total_frames": 6
+    },
+    "DP": {
+      "name": "Dragon Punch",
+      "notation": "623",
+      "category": "motion",
+      "difficulty": 3,
+      "frames": [
+        {"input": "5", "hold": 3},
+        {"input": "6", "hold": 1},
+        {"input": "2", "hold": 1},
+        {"input": "3+{button}", "hold": 1}
+      ],
+      "total_frames": 6,
+      "properties": ["invincible"]
+    },
+    "HCF": {
+      "name": "Half Circle Forward",
+      "notation": "41236",
+      "category": "motion",
+      "difficulty": 4,
+      "frames": [
+        {"input": "5", "hold": 2},
+        {"input": "4", "hold": 1},
+        {"input": "1", "hold": 1},
+        {"input": "2", "hold": 1},
+        {"input": "3", "hold": 1},
+        {"input": "6+{button}", "hold": 1}
+      ],
+      "total_frames": 7
+    },
+    "HCB": {
+      "name": "Half Circle Back",
+      "notation": "63214",
+      "category": "motion",
+      "difficulty": 4,
+      "frames": [
+        {"input": "5", "hold": 2},
+        {"input": "6", "hold": 1},
+        {"input": "3", "hold": 1},
+        {"input": "2", "hold": 1},
+        {"input": "1", "hold": 1},
+        {"input": "4+{button}", "hold": 1}
+      ],
+      "total_frames": 7
+    },
+    "HCB_F": {
+      "name": "Command Grab Motion",
+      "notation": "632146",
+      "category": "motion",
+      "difficulty": 5,
+      "frames": [
+        {"input": "5", "hold": 2},
+        {"input": "6", "hold": 1},
+        {"input": "3", "hold": 1},
+        {"input": "2", "hold": 1},
+        {"input": "1", "hold": 1},
+        {"input": "4", "hold": 1},
+        {"input": "6+{button}", "hold": 1}
+      ],
+      "total_frames": 8,
+      "properties": ["command_grab", "unblockable"]
+    }
+  },
+  "movement": {
+    "walk_forward": {
+      "name": "Walk Forward",
+      "category": "movement",
+      "difficulty": 1,
+      "frames": [
+        {"input": "6", "hold": "{duration}", "comment": "mantener forward"}
+      ],
+      "parameters": {
+        "duration": {"type": "int", "default": 30, "min": 1, "max": 300}
+      }
+    },
+    "walk_backward": {
+      "name": "Walk Backward",
+      "category": "movement",
+      "difficulty": 1,
+      "frames": [
+        {"input": "4", "hold": "{duration}"}
+      ],
+      "parameters": {
+        "duration": {"type": "int", "default": 30, "min": 1, "max": 300}
+      }
+    },
+    "dash_forward": {
+      "name": "Dash Forward",
+      "notation": "66",
+      "category": "movement",
+      "difficulty": 2,
+      "frames": [
+        {"input": "5", "hold": 3},
+        {"input": "6", "hold": 1, "comment": "tap forward"},
+        {"input": "5", "hold": 1, "comment": "release"},
+        {"input": "6", "hold": 1, "comment": "tap forward again"},
+        {"input": "6", "hold": 14, "comment": "dash animation"},
+        {"input": "5", "hold": 3, "comment": "recovery"}
+      ],
+      "total_frames": 23,
+      "timing_critical": true
+    },
+    "backdash": {
+      "name": "Backdash",
+      "notation": "44",
+      "category": "movement",
+      "difficulty": 2,
+      "frames": [
+        {"input": "5", "hold": 3},
+        {"input": "4", "hold": 1},
+        {"input": "5", "hold": 1},
+        {"input": "4", "hold": 1},
+        {"input": "4", "hold": 19, "comment": "invincible frames 7-15"},
+        {"input": "5", "hold": 3}
+      ],
+      "total_frames": 28,
+      "properties": ["invincible"],
+      "invincible_frames": [7, 15]
+    },
+    "jump_forward": {
+      "name": "Jump Forward",
+      "category": "movement",
+      "difficulty": 1,
+      "frames": [
+        {"input": "5", "hold": 3},
+        {"input": "9", "hold": 3, "comment": "prejump"},
+        {"input": "9", "hold": 34, "comment": "airborne"},
+        {"input": "5", "hold": 5, "comment": "landing"}
+      ],
+      "total_frames": 45
+    },
+    "jump_backward": {
+      "name": "Jump Backward",
+      "category": "movement",
+      "difficulty": 1,
+      "frames": [
+        {"input": "5", "hold": 3},
+        {"input": "7", "hold": 3},
+        {"input": "7", "hold": 34},
+        {"input": "5", "hold": 5}
+      ],
+      "total_frames": 45
+    },
+    "hop_forward": {
+      "name": "Hop Forward",
+      "category": "movement",
+      "difficulty": 3,
+      "frames": [
+        {"input": "5", "hold": 2},
+        {"input": "9", "hold": 1, "comment": "TAP - no mantener"},
+        {"input": "5", "hold": 1, "comment": "release"},
+        {"input": "9", "hold": 21, "comment": "airborne - bajo y rápido"},
+        {"input": "5", "hold": 3}
+      ],
+      "total_frames": 28,
+      "timing_critical": true
+    },
+    "hop_backward": {
+      "name": "Hop Backward",
+      "category": "movement",
+      "difficulty": 3,
+      "frames": [
+        {"input": "5", "hold": 2},
+        {"input": "7", "hold": 1},
+        {"input": "5", "hold": 1},
+        {"input": "7", "hold": 21},
+        {"input": "5", "hold": 3}
+      ],
+      "total_frames": 28
+    },
+    "hyper_jump_forward": {
+      "name": "Hyper Jump Forward",
+      "notation": "2~9",
+      "category": "movement",
+      "difficulty": 4,
+      "frames": [
+        {"input": "5", "hold": 2},
+        {"input": "2", "hold": 2, "comment": "down charge"},
+        {"input": "9", "hold": 3, "comment": "quickly to UF"},
+        {"input": "9", "hold": 30, "comment": "hyper jump - alto y rápido"},
+        {"input": "5", "hold": 3}
+      ],
+      "total_frames": 40,
+      "timing_critical": true
+    },
+    "hyper_jump_backward": {
+      "name": "Hyper Jump Backward",
+      "notation": "2~7",
+      "category": "movement",
+      "difficulty": 4,
+      "frames": [
+        {"input": "5", "hold": 2},
+        {"input": "2", "hold": 2},
+        {"input": "7", "hold": 3},
+        {"input": "7", "hold": 30},
+        {"input": "5", "hold": 3}
+      ],
+      "total_frames": 40
+    },
+    "hyper_hop_forward": {
+      "name": "Hyper Hop Forward",
+      "notation": "2~9 (tap)",
+      "category": "movement",
+      "difficulty": 5,
+      "frames": [
+        {"input": "5", "hold": 2},
+        {"input": "2", "hold": 2},
+        {"input": "9", "hold": 1, "comment": "quick tap"},
+        {"input": "5", "hold": 1},
+        {"input": "9", "hold": 10, "comment": "bajo y muy rápido"},
+        {"input": "5", "hold": 2}
+      ],
+      "total_frames": 18,
+      "timing_critical": true
+    },
+    "hyper_hop_backward": {
+      "name": "Hyper Hop Backward",
+      "notation": "2~7 (tap)",
+      "category": "movement",
+      "difficulty": 5,
+      "frames": [
+        {"input": "5", "hold": 2},
+        {"input": "2", "hold": 2},
+        {"input": "7", "hold": 1},
+        {"input": "5", "hold": 1},
+        {"input": "7", "hold": 10},
+        {"input": "5", "hold": 2}
+      ],
+      "total_frames": 18
+    }
+  },
+  "aerial_attacks": {
+    "j_A": {
+      "name": "Jump Light Punch",
+      "category": "aerial",
+      "difficulty": 2,
+      "requires": "airborne",
+      "frames": [
+        {"input": "9+A", "hold": 1, "comment": "press A in air"},
+        {"input": "9", "hold": 4, "comment": "animación hit"}
+      ],
+      "total_frames": 5
+    },
+    "j_B": {
+      "name": "Jump Light Kick",
+      "category": "aerial",
+      "difficulty": 2,
+      "requires": "airborne",
+      "frames": [
+        {"input": "9+B", "hold": 1},
+        {"input": "9", "hold": 4}
+      ],
+      "total_frames": 5
+    },
+    "j_C": {
+      "name": "Jump Strong Punch",
+      "category": "aerial",
+      "difficulty": 2,
+      "requires": "airborne",
+      "frames": [
+        {"input": "9+C", "hold": 1},
+        {"input": "9", "hold": 6}
+      ],
+      "total_frames": 7
+    },
+    "j_D": {
+      "name": "Jump Strong Kick",
+      "category": "aerial",
+      "difficulty": 2,
+      "requires": "airborne",
+      "frames": [
+        {"input": "9+D", "hold": 1},
+        {"input": "9", "hold": 6}
+      ],
+      "total_frames": 7
+    }
+  },
+  "combos": {
+    "cr_B_cr_A_QCF_A": {
+      "name": "cr.B > cr.A > QCF+A",
+      "category": "combo",
+      "difficulty": 3,
+      "description": "Combo básico de confirmación desde cr.B",
+      "sequence": [
+        {"ref": "basic_attacks.cr_B"},
+        {"ref": "basic_attacks.cr_A"},
+        {"ref": "special_motions.QCF", "button": "A"}
+      ],
+      "properties": ["low_starter", "hit_confirm"]
+    },
+    "cl_C_QCF_C": {
+      "name": "cl.C > QCF+C",
+      "category": "combo",
+      "difficulty": 2,
+      "description": "Confirm principal desde close C",
+      "sequence": [
+        {"ref": "basic_attacks.cl_C"},
+        {"ref": "special_motions.QCF", "button": "C"}
+      ],
+      "properties": ["close", "cancelable"]
+    },
+    "j_D_cl_C_DP_A": {
+      "name": "j.D > cl.C > DP+A",
+      "category": "combo",
+      "difficulty": 4,
+      "description": "Jump-in combo con reversal",
+      "sequence": [
+        {"ref": "movement.jump_forward"},
+        {"ref": "aerial_attacks.j_D", "timing": "apex"},
+        {"wait": 10, "comment": "landing lag"},
+        {"ref": "basic_attacks.cl_C"},
+        {"ref": "special_motions.DP", "button": "A"}
+      ],
+      "properties": ["jump_in", "invincible_ender"]
+    }
+  },
+  "advanced_sequences": {
+    "walk_forward_grab": {
+      "name": "Walk Forward > Command Grab",
+      "category": "sequence",
+      "difficulty": 3,
+      "description": "Aproximarse y ejecutar command grab",
+      "sequence": [
+        {"ref": "movement.walk_forward", "params": {"duration": 30}},
+        {"ref": "special_motions.HCB_F", "button": "A"}
+      ],
+      "total_frames": 36,
+      "properties": ["approach", "unblockable"]
+    },
+    "run_attack": {
+      "name": "Run > Attack",
+      "category": "sequence",
+      "difficulty": 3,
+      "description": "Dash forward con ataque",
+      "sequence": [
+        {"ref": "movement.dash_forward"},
+        {"input": "6+C", "hold": 1, "comment": "attack durante run"},
+        {"input": "6", "hold": 5},
+        {"input": "5", "hold": 3}
+      ],
+      "total_frames": 32
+    },
+    "jump_forward_attack": {
+      "name": "Jump Forward > Attack",
+      "category": "sequence",
+      "difficulty": 2,
+      "description": "Salto normal con ataque",
+      "sequence": [
+        {"input": "5", "hold": 3},
+        {"input": "9", "hold": 3, "comment": "prejump"},
+        {"input": "9", "hold": 18, "comment": "subiendo"},
+        {"ref": "aerial_attacks.j_D"},
+        {"input": "9", "hold": 12, "comment": "cayendo"},
+        {"input": "5", "hold": 3}
+      ],
+      "total_frames": 45
+    },
+    "hop_forward_attack": {
+      "name": "Hop Forward > Attack",
+      "category": "sequence",
+      "difficulty": 4,
+      "description": "Hop con ataque - presión rápida",
+      "sequence": [
+        {"ref": "movement.hop_forward"},
+        {"ref": "aerial_attacks.j_C", "timing": "early"},
+        {"input": "9", "hold": 6},
+        {"input": "5", "hold": 2}
+      ],
+      "total_frames": 27
+    },
+    "hyper_jump_forward_attack": {
+      "name": "Hyper Jump Forward > Attack",
+      "category": "sequence",
+      "difficulty": 5,
+      "description": "Hyper jump con ataque",
+      "sequence": [
+        {"ref": "movement.hyper_jump_forward"},
+        {"ref": "aerial_attacks.j_D", "timing": "apex"},
+        {"input": "9", "hold": 9},
+        {"input": "5", "hold": 3}
+      ],
+      "total_frames": 44
+    },
+    "hyper_hop_forward_attack": {
+      "name": "Hyper Hop Forward > Attack",
+      "category": "sequence",
+      "difficulty": 5,
+      "description": "Presión extremadamente rápida",
+      "sequence": [
+        {"ref": "movement.hyper_hop_forward"},
+        {"ref": "aerial_attacks.j_B", "timing": "early"},
+        {"input": "9", "hold": 5},
+        {"input": "5", "hold": 2}
+      ],
+      "total_frames": 23
+    },
+    "reset_training": {
+      "name": "Reset Training Mode",
+      "category": "utility",
+      "difficulty": 1,
+      "description": "Resetear posiciones en training",
+      "sequence": [
+        {"input": "5+SELECT", "hold": 1},
+        {"input": "5", "hold": 60, "comment": "esperar 1 segundo"}
+      ],
+      "total_frames": 61
+    }
+  },
+  "training_drills": {
+    "neutral_game_loop": {
+      "name": "Neutral Game Loop",
+      "category": "drill",
+      "description": "Práctica de movimiento básico",
+      "sequence": [
+        {"ref": "movement.walk_forward", "params": {"duration": 30}},
+        {"ref": "movement.walk_backward", "params": {"duration": 20}},
+        {"ref": "movement.dash_forward"},
+        {"ref": "movement.backdash"},
+        {"ref": "advanced_sequences.reset_training"}
+      ],
+      "total_frames": 181,
+      "loop": true
+    },
+    "jump_pattern_practice": {
+      "name": "Jump Pattern Practice",
+      "category": "drill",
+      "description": "Práctica de todos los tipos de salto",
+      "sequence": [
+        {"ref": "advanced_sequences.jump_forward_attack"},
+        {"wait": 10},
+        {"ref": "advanced_sequences.hop_forward_attack"},
+        {"wait": 10},
+        {"ref": "advanced_sequences.hyper_jump_forward_attack"},
+        {"ref": "advanced_sequences.reset_training"}
+      ],
+      "total_frames": 184,
+      "loop": true
+    },
+    "approach_pattern": {
+      "name": "Approach Pattern",
+      "category": "drill",
+      "description": "Práctica de aproximación con grab",
+      "sequence": [
+        {"ref": "advanced_sequences.walk_forward_grab"},
+        {"wait": 20},
+        {"ref": "advanced_sequences.reset_training"}
+      ],
+      "total_frames": 142,
+      "loop": true
+    }
+  }
+}
