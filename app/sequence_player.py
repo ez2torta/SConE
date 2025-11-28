@@ -45,17 +45,43 @@ except ImportError:
 class SequencePlayer:
     """Reproductor de secuencias de inputs con timing preciso."""
 
-    def __init__(self, controller: SNESController, fps: int = 60):
+    def __init__(self, controller: SNESController, fps: int = 60,
+                 invert_x_axis: bool = False):
         """
         Inicializa el reproductor.
 
         Args:
             controller: Instancia del controlador SNES
             fps: Frames por segundo (típicamente 60 para SNES)
+            invert_x_axis: Si True, invierte LEFT/RIGHT (para player 2)
         """
         self.controller = controller
         self.fps = fps
         self.frame_time = 1.0 / fps  # Tiempo por frame en segundos
+        self.invert_x_axis = invert_x_axis
+
+    def _invert_buttons(self, buttons):
+        """
+        Invierte los botones del eje X si invert_x_axis está activo.
+
+        Args:
+            buttons: Lista de SNESButton
+
+        Returns:
+            Lista de SNESButton con direcciones invertidas si aplica
+        """
+        if not self.invert_x_axis:
+            return buttons
+
+        inverted = []
+        for button in buttons:
+            if button == SNESButton.LEFT:
+                inverted.append(SNESButton.RIGHT)
+            elif button == SNESButton.RIGHT:
+                inverted.append(SNESButton.LEFT)
+            else:
+                inverted.append(button)
+        return inverted
 
     def play_sequence(self, sequence: InputSequence,
                       start_frame: int = 0) -> None:
@@ -69,6 +95,8 @@ class SequencePlayer:
         print(f"🎮 Reproduciendo secuencia: {sequence.name}")
         if sequence.description:
             print(f"📝 {sequence.description}")
+        if self.invert_x_axis:
+            print("🔄 Modo Player 2 (eje X invertido)")
 
         total_frames = sequence.get_total_frames()
         duration = total_frames / self.fps
@@ -78,6 +106,8 @@ class SequencePlayer:
             buttons = sequence.get_frame_buttons(frame)
 
             if buttons:
+                # Invertir direcciones si es necesario
+                buttons = self._invert_buttons(buttons)
                 self.controller.press_buttons(buttons)
                 button_names = [b.name for b in buttons]
                 print(f"Frame {frame:3d}: {button_names}")
@@ -98,6 +128,8 @@ class SequencePlayer:
         input del usuario.
         """
         print(f"🎮 Modo Frame-by-Frame: {sequence.name}")
+        if self.invert_x_axis:
+            print("🔄 Modo Player 2 (eje X invertido)")
         print("Presiona Enter para avanzar al siguiente frame, 'q' para salir")
 
         total_frames = sequence.get_total_frames()
@@ -106,6 +138,8 @@ class SequencePlayer:
             buttons = sequence.get_frame_buttons(frame)
 
             if buttons:
+                # Invertir direcciones si es necesario
+                buttons = self._invert_buttons(buttons)
                 button_names = [b.name for b in buttons]
                 print(f"Frame {frame:3d}: {button_names}")
             else:
@@ -185,15 +219,17 @@ def interactive_sequence_test():
     print("  load <file> - Cargar secuencia desde archivo")
     print("  save <file> - Guardar última secuencia")
     print("  frame       - Modo frame-by-frame")
+    print("  p2          - Toggle Player 2 mode (invierte eje X)")
     print("  quit        - Salir")
 
     controller = None
     player = None
     last_sequence = None
+    invert_x = False
 
     try:
         controller = SNESController()
-        player = SequencePlayer(controller)
+        player = SequencePlayer(controller, invert_x_axis=invert_x)
 
         while True:
             cmd = input("\n> ").strip().lower().split()
@@ -205,6 +241,11 @@ def interactive_sequence_test():
 
             if command == 'quit':
                 break
+            elif command == 'p2':
+                invert_x = not invert_x
+                player = SequencePlayer(controller, invert_x_axis=invert_x)
+                mode = "Player 2 🔄" if invert_x else "Player 1 ➡️"
+                print(f"✅ Modo cambiado a: {mode}")
             elif command == 'hadouken':
                 seq = create_hadouken_sequence()
                 player.play_sequence(seq)
