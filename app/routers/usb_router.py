@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
-import asyncio
+import threading
+import time
 from ..controllers.serial_controller import SNESController, SNESButton
 
 router = APIRouter()
@@ -24,6 +25,7 @@ class Sequence(BaseModel):
 
 # Global controller instance (in production, use dependency injection)
 controller = None
+controller_lock = threading.Lock()  # Lock para thread-safety
 
 
 @router.on_event("startup")
@@ -49,24 +51,36 @@ async def press_buttons(button_press: ButtonPress):
         raise HTTPException(status_code=500,
                             detail="Controller not initialized")
 
-    try:
-        buttons = []
-        for btn_name in button_press.buttons:
+    def execute_press():
+        """Execute button press in a separate thread."""
+        with controller_lock:
             try:
-                button = SNESButton[btn_name.upper()]
-                buttons.append(button)
-            except KeyError:
-                raise HTTPException(status_code=400,
-                                    detail=f"Unknown button: {btn_name}")
+                buttons = []
+                for btn_name in button_press.buttons:
+                    try:
+                        button = SNESButton[btn_name.upper()]
+                        buttons.append(button)
+                    except KeyError:
+                        print(f"Unknown button: {btn_name}")
+                        continue
 
-        controller.press_buttons(buttons)
-        await asyncio.sleep(button_press.duration)
-        controller.release_all()
+                controller.press_buttons(buttons)
+                time.sleep(button_press.duration)
+                controller.release_all()
+            except Exception as e:
+                print(f"Error pressing buttons: {e}")
 
-        return {"status": "success", "pressed": [b.name for b in buttons]}
+    # Execute in thread
+    thread = threading.Thread(target=execute_press)
+    thread.start()
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # Return immediately
+    return {
+        "status": "success",
+        "message": "Button press started",
+        "buttons": button_press.buttons,
+        "duration": button_press.duration
+    }
 
 
 @router.post("/record/start")
@@ -90,26 +104,38 @@ async def playback_sequence(sequence: Sequence):
         raise HTTPException(status_code=500,
                             detail="Controller not initialized")
 
-    try:
-        for item in sequence.sequence:
-            buttons = []
-            for btn_name in item.buttons:
-                try:
-                    button = SNESButton[btn_name.upper()]
-                    buttons.append(button)
-                except KeyError:
-                    raise HTTPException(status_code=400,
-                                        detail=f"Unknown button: {btn_name}")
+    def play_sequence():
+        """Execute the sequence in a separate thread."""
+        with controller_lock:
+            try:
+                for item in sequence.sequence:
+                    buttons = []
+                    for btn_name in item.buttons:
+                        try:
+                            button = SNESButton[btn_name.upper()]
+                            buttons.append(button)
+                        except KeyError:
+                            print(f"Unknown button: {btn_name}")
+                            continue
 
-            controller.press_buttons(buttons)
-            await asyncio.sleep(item.duration)
-            controller.release_all()
-            await asyncio.sleep(0.1)  # Small delay between actions
+                    controller.press_buttons(buttons)
+                    time.sleep(item.duration)
+                    controller.release_all()
+                    time.sleep(0.1)  # Small delay between actions
+            except Exception as e:
+                print(f"Error during playback: {e}")
 
-        return {"status": "success", "played": sequence.name}
+    # Execute in thread
+    thread = threading.Thread(target=play_sequence)
+    thread.start()
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # Return immediately
+    return {
+        "status": "success",
+        "message": "Sequence started",
+        "sequence_name": sequence.name,
+        "total_items": len(sequence.sequence)
+    }
 
 
 @router.get("/status")
