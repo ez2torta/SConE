@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+pydantic
+pyserial
+numpy
+python-dotenv
+# opencv-python
+Pillow
+# torch
+# torchvision
+# torchaudio

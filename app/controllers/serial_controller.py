@@ -19,20 +19,23 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List
 
+
 class SNESButton(Enum):
     """Enumeración de botones del SNES con sus valores de máscara."""
-    B = 1 << 0       # Botón B (inferior derecha)
-    Y = 1 << 1       # Botón Y (superior izquierda)
-    X = 1 << 2       # Botón X (superior centro)
-    START = 1 << 3   # Start
+
+    B = 1 << 0  # Botón B (inferior derecha)
+    Y = 1 << 1  # Botón Y (superior izquierda)
+    X = 1 << 2  # Botón X (superior centro)
+    START = 1 << 3  # Start
     SELECT = 1 << 4  # Select (corregido para no compartir con X)
-    L = 1 << 6       # Hombro izquierdo
-    R = 1 << 7       # Hombro derecho
-    UP = 1 << 8      # Arriba
-    DOWN = 1 << 9    # Abajo
-    LEFT = 1 << 10   # Izquierda
+    L = 1 << 6  # Hombro izquierdo
+    R = 1 << 7  # Hombro derecho
+    UP = 1 << 8  # Arriba
+    DOWN = 1 << 9  # Abajo
+    LEFT = 1 << 10  # Izquierda
     RIGHT = 1 << 11  # Derecha
-    A = 1 << 12      # Botón A (superior derecha)
+    A = 1 << 12  # Botón A (superior derecha)
+
 
 class Controller(ABC):
     """Interfaz abstracta para controladores de videojuegos."""
@@ -47,6 +50,7 @@ class Controller(ABC):
         """Cierra la conexión con el dispositivo."""
         pass
 
+
 class SNESController(Controller):
     """Controlador para emulador SNES vía puerto serial."""
 
@@ -55,10 +59,10 @@ class SNESController(Controller):
         Inicializa la conexión serial con el ESP32.
 
         Args:
-            port: Puerto serial a usar. Si None, usa SNES_SERIAL_PORT o '/dev/ttyUSB0'
+            port: Puerto serial a usar. Si None, usa SNES_SERIAL_PORT o '/dev/cu.usbserial-2120'
         """
         if port is None:
-            port = os.environ.get('SNES_SERIAL_PORT', '/dev/ttyUSB0')
+            port = os.environ.get("SNES_SERIAL_PORT", "/dev/cu.usbserial-2120")
 
         try:
             self.ser = serial.Serial(port, 115200, timeout=1)
@@ -67,7 +71,7 @@ class SNESController(Controller):
             time.sleep(2)
             # Leer mensajes de inicio
             while self.ser.in_waiting:
-                line = self.ser.readline().decode('utf-8', errors='ignore').strip()
+                line = self.ser.readline().decode("utf-8", errors="ignore").strip()
                 if line:
                     print(f"ESP32: {line}")
         except serial.SerialException as e:
@@ -80,7 +84,7 @@ class SNESController(Controller):
         Args:
             button_mask: uint32_t con los bits de botones activos
         """
-        data = struct.pack('<I', button_mask)
+        data = struct.pack("<I", button_mask)
         self.ser.write(data)
         self.ser.flush()
 
@@ -111,9 +115,10 @@ class SNESController(Controller):
 
     def close(self) -> None:
         """Cierra la conexión serial."""
-        if hasattr(self, 'ser'):
+        if hasattr(self, "ser"):
             self.ser.close()
             print("✅ Conexión cerrada")
+
 
 def test_sequence(controller: SNESController):
     """Ejecuta una secuencia de prueba para botones SNES"""
@@ -207,6 +212,7 @@ def test_sequence(controller: SNESController):
 
     print("\n=== Test completado! ===")
 
+
 def interactive_mode(controller: SNESController):
     """Modo interactivo para enviar botones SNES"""
     print("\n=== Modo Interactivo SNES ===")
@@ -223,7 +229,7 @@ def interactive_mode(controller: SNESController):
         while True:
             user_input = input("> ").strip().upper()
 
-            if user_input == 'QUIT':
+            if user_input == "QUIT":
                 break
 
             if not user_input:
@@ -251,6 +257,7 @@ def interactive_mode(controller: SNESController):
     finally:
         # Soltar todos los botones al salir
         controller.release_all()
+
 
 def continuous_spam(controller: SNESController, rate_hz: int = 60):
     """
@@ -286,6 +293,7 @@ def continuous_spam(controller: SNESController, rate_hz: int = 60):
     finally:
         controller.release_all()
 
+
 def main():
     if len(sys.argv) < 2:
         print("SNES Controller Emulator - Script de Prueba")
@@ -308,6 +316,7 @@ def main():
         # Intentar listar puertos disponibles
         try:
             from serial.tools import list_ports
+
             ports = list_ports.comports()
             if ports:
                 print("\nPuertos seriales detectados:")
@@ -319,17 +328,17 @@ def main():
         sys.exit(1)
 
     port = sys.argv[1]
-    mode = sys.argv[2] if len(sys.argv) > 2 else 'test'
+    mode = sys.argv[2] if len(sys.argv) > 2 else "test"
 
     controller = None
     try:
         controller = SNESController(port)
 
-        if mode == 'test':
+        if mode == "test":
             test_sequence(controller)
-        elif mode == 'interactive':
+        elif mode == "interactive":
             interactive_mode(controller)
-        elif mode in ['turbo', 'spam']:
+        elif mode in ["turbo", "spam"]:
             continuous_spam(controller)
         else:
             print(f"❌ Modo desconocido: {mode}")
@@ -339,11 +348,13 @@ def main():
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
     finally:
         if controller:
             controller.close()
+
 
 if __name__ == "__main__":
     main()
